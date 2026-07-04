@@ -1,3 +1,8 @@
+from backend.dashboard.history_service import get_dashboard_history
+from backend.dashboard.asset_service import get_dashboard_assets
+from backend.dashboard.finding_service import get_dashboard_findings
+from backend.dashboard.summary_service import get_dashboard_summary
+
 from backend.services.scan_service import ScanService
 from backend.providers.factory import get_provider
 from backend.config import settings
@@ -326,3 +331,54 @@ def scan_gcp():
         "summary": result.summary,
         "findings": result.findings,
     }
+
+@router.get("/dashboard/summary")
+def dashboard_summary(
+    db: Session = Depends(get_db),
+):
+
+    return get_dashboard_summary(db)
+
+@router.get("/dashboard/findings")
+def dashboard_findings(
+    severity: str | None = None,
+    service: str | None = None,
+    limit: int = 25,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+
+    return get_dashboard_findings(
+        db=db,
+        severity=severity,
+        service=service,
+        limit=limit,
+        offset=offset,
+    )    
+
+@router.get("/dashboard/assets")
+def dashboard_assets(
+    service: str | None = None,
+    resource_type: str | None = None,
+    limit: int = 25,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+
+    return get_dashboard_assets(
+        db=db,
+        service=service,
+        resource_type=resource_type,
+        limit=limit,
+        offset=offset,
+    )    
+
+@router.get("/dashboard/history")
+def dashboard_history(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    return get_dashboard_history(
+        db=db,
+        limit=limit,
+    )    
