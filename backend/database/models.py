@@ -116,6 +116,14 @@ class Finding(Base):
 
     status = Column(String, default="ACTIVE")
 
+    first_seen = Column(DateTime, default=datetime.utcnow)
+
+    last_seen = Column(DateTime, default=datetime.utcnow)
+
+    resolved_at = Column(DateTime, nullable=True)
+
+    
+
 
     risk_score = Column(Integer, default=0)
 
