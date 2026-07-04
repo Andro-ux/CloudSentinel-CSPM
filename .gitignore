@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# GCP Credentials
+backend/credentials/
+*.json
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+
+# React
+frontend/build/

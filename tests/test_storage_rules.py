@@ -1,0 +1,11 @@
+from backend.collectors.gcp_storage_collector import collect_buckets
+from backend.normalizers.gcp_storage import normalize_bucket
+from backend.rules.gcp_storage import evaluate_bucket
+
+for bucket in collect_buckets():
+
+    normalized = normalize_bucket(bucket)
+
+    findings = evaluate_bucket(normalized)
+
+    print(findings)

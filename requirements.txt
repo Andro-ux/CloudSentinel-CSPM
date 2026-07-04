@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+boto3
+sqlalchemy
+apscheduler
+python-dotenv
+pydantic
+requests
+celery
+redis
+pyjwt
+python-multipart
+cryptography
+
