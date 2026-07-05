@@ -1,3 +1,7 @@
+from backend.collectors.gcp_firewall_collector import collect_firewall_rules
+from backend.normalizers.gcp_firewall import normalize_firewall
+from backend.rules.gcp_firewall_rules import evaluate_firewall
+
 from backend.providers.scan_result import ScanResult
 from backend.normalizers.gcp_compute import normalize_instance
 from backend.rules.gcp_compute_rules import evaluate_instance
@@ -25,16 +29,19 @@ class GCPProvider:
         storage_findings = self.scan_storage()
         compute_findings = self.scan_compute()
         logging_findings = self.scan_logging()
+        firewall_findings = self.scan_firewall()
 
         result.findings.extend(iam_findings)
         result.findings.extend(storage_findings)
         result.findings.extend(compute_findings)
         result.findings.extend(logging_findings)
+        result.findings.extend(firewall_findings)
 
         result.assets = {
         "iam": len(collect_service_accounts()),
         "storage": len(collect_buckets()),
         "compute": len(collect_instances()),
+        "firewall": len(collect_firewall_rules()),
         }
 
         result.calculate_summary()
@@ -100,8 +107,29 @@ class GCPProvider:
 
         for instance in collect_instances():
             assets.append(normalize_instance(instance))
+
+        for rule in collect_firewall_rules():
+            assets.append(
+                normalize_firewall(rule)
+            )    
     
         return assets    
+
+    def scan_firewall(self):
+
+        findings = []
+
+        rules = collect_firewall_rules()
+
+        for rule in rules:
+
+            normalized = normalize_firewall(rule)
+
+            findings.extend(
+                evaluate_firewall(normalized)
+            )
+
+        return findings    
 
     def scan_logging(self):
         return []
