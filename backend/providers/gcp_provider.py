@@ -1,3 +1,7 @@
+from backend.collectors.gcp_subnet_collector import collect_subnets
+from backend.normalizers.gcp_subnet import normalize_subnet
+from backend.rules.gcp_subnet_rules import evaluate_subnet
+
 from backend.collectors.gcp_vpc_collector import collect_vpcs
 from backend.normalizers.gcp_vpc import normalize_vpc
 from backend.rules.gcp_vpc_rules import evaluate_vpc
@@ -35,6 +39,7 @@ class GCPProvider:
         logging_findings = self.scan_logging()
         firewall_findings = self.scan_firewall()
         vpc_findings = self.scan_vpc()
+        subnet_findings = self.scan_subnets()
 
         result.findings.extend(iam_findings)
         result.findings.extend(storage_findings)
@@ -42,6 +47,7 @@ class GCPProvider:
         result.findings.extend(logging_findings)
         result.findings.extend(firewall_findings)
         result.findings.extend(vpc_findings)
+        result.findings.extend(subnet_findings)
 
         result.assets = {
         "iam": len(collect_service_accounts()),
@@ -49,58 +55,54 @@ class GCPProvider:
         "compute": len(collect_instances()),
         "firewall": len(collect_firewall_rules()),
         "vpc": len(collect_vpcs()),
+        "subnet": len(collect_subnets()),
         }
 
         result.calculate_summary()
 
         return result
-    def scan_iam(self):
+
+    def process_resources(
+    self,
+        resources,
+        normalizer,
+        evaluator,
+    ):
 
         findings = []
 
-        accounts = collect_service_accounts()
+        for resource in resources:
 
-        for account in accounts:
-
-            normalized = normalize_service_account(account)
+            normalized = normalizer(resource)
 
             findings.extend(
-                evaluate_service_account(normalized)
+                evaluator(normalized)
             )
 
         return findings
+
+    def scan_iam(self):
+
+        return self.process_resources(
+        collect_service_accounts(),
+        normalize_service_account,
+        evaluate_service_account,
+    )
 
     def scan_storage(self):
 
-        findings = []
-
-        buckets = collect_buckets()
-
-        for bucket in buckets:
-
-            normalized = normalize_bucket(bucket)
-
-            findings.extend(
-            evaluate_bucket(normalized)
-            )
-
-        return findings
+        return self.process_resources(
+        collect_buckets(),
+        normalize_bucket,
+        evaluate_bucket,
+    )
 
     def scan_compute(self):
-
-        findings = []
-
-        instances = collect_instances()
-
-        for instance in instances:
-
-            normalized = normalize_instance(instance)
-
-            findings.extend(
-                evaluate_instance(normalized)
-            )
-
-        return findings
+        return self.process_resources(
+        collect_instances(),
+        normalize_instance,
+        evaluate_instance,
+    )
 
     def get_assets(self):
 
@@ -123,33 +125,38 @@ class GCPProvider:
         for network in collect_vpcs():
 
             assets.append(normalize_vpc(network))
+
+        for subnet in collect_subnets():
+            assets.append(normalize_subnet(subnet))    
     
         return assets    
 
     def scan_firewall(self):
 
-        findings = []
-
-        rules = collect_firewall_rules()
-
-        for rule in rules:
-
-            normalized = normalize_firewall(rule)
-
-            findings.extend(
-                evaluate_firewall(normalized)
-            )
-
-        return findings    
+        return self.process_resources(
+            collect_firewall_rules(),
+            normalize_firewall,
+            evaluate_firewall,
+        )    
 
     def scan_vpc(self):
-        findings = []
-        networks = collect_vpcs()
-        for network in networks:
-            normalized = normalize_vpc(network)
-            findings.extend(evaluate_vpc(normalized))
+        return self.process_resources(
+            collect_vpcs(),
+            normalize_vpc,
+            evaluate_vpc,
+        )
 
-        return findings
+    def scan_subnets(self):
+
+        return self.process_resources(
+            collect_subnets(),
+            normalize_subnet,
+            evaluate_subnet,
+        )
 
     def scan_logging(self):
         return []
+
+
+
+   
