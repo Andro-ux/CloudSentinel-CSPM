@@ -1,3 +1,24 @@
+from backend.collectors.gcp_cloud_armor_collector import (
+    collect_cloud_armor_policies,
+)
+
+from backend.normalizers.gcp_cloud_armor import (
+    normalize_cloud_armor,
+)
+
+from backend.rules.gcp_cloud_armor_rules import (
+    evaluate_cloud_armor,
+)
+from backend.collectors.gcp_lb_collector import collect_load_balancers
+from backend.normalizers.gcp_lb import normalize_load_balancer
+from backend.rules.gcp_lb_rules import evaluate_load_balancer
+from backend.collectors.gcp_nat_collector import collect_nat_gateways
+from backend.normalizers.gcp_nat import normalize_nat
+from backend.rules.gcp_nat_rules import evaluate_nat
+from backend.collectors.gcp_route_collector import collect_routes
+from backend.normalizers.gcp_route import normalize_route
+from backend.rules.gcp_route_rules import evaluate_route
+
 from backend.collectors.gcp_subnet_collector import collect_subnets
 from backend.normalizers.gcp_subnet import normalize_subnet
 from backend.rules.gcp_subnet_rules import evaluate_subnet
@@ -40,6 +61,10 @@ class GCPProvider:
         firewall_findings = self.scan_firewall()
         vpc_findings = self.scan_vpc()
         subnet_findings = self.scan_subnets()
+        route_findings = self.scan_routes()
+        nat_findings = self.scan_nat()
+        lb_findings = self.scan_load_balancers()
+        armor_findings = self.scan_cloud_armor()
 
         result.findings.extend(iam_findings)
         result.findings.extend(storage_findings)
@@ -48,6 +73,10 @@ class GCPProvider:
         result.findings.extend(firewall_findings)
         result.findings.extend(vpc_findings)
         result.findings.extend(subnet_findings)
+        result.findings.extend(route_findings)
+        result.findings.extend(nat_findings)
+        result.findings.extend(lb_findings)
+        result.findings.extend(armor_findings)
 
         result.assets = {
         "iam": len(collect_service_accounts()),
@@ -56,6 +85,10 @@ class GCPProvider:
         "firewall": len(collect_firewall_rules()),
         "vpc": len(collect_vpcs()),
         "subnet": len(collect_subnets()),
+        "route": len(collect_routes()),
+        "nat": len(collect_nat_gateways()),
+        "load_balancer": len(collect_load_balancers()),
+        "cloud_armor": len(collect_cloud_armor_policies()),
         }
 
         result.calculate_summary()
@@ -127,7 +160,26 @@ class GCPProvider:
             assets.append(normalize_vpc(network))
 
         for subnet in collect_subnets():
-            assets.append(normalize_subnet(subnet))    
+            assets.append(normalize_subnet(subnet))   
+
+        for route in collect_routes():
+            assets.append(normalize_route(route))
+        for nat in collect_nat_gateways():
+
+            assets.append(
+                normalize_nat(nat)
+            )         
+        for lb in collect_load_balancers():
+
+            assets.append(
+                normalize_load_balancer(lb)
+            )    
+
+        for policy in collect_cloud_armor_policies():
+
+            assets.append(
+                normalize_cloud_armor(policy)
+            )    
     
         return assets    
 
@@ -153,6 +205,37 @@ class GCPProvider:
             normalize_subnet,
             evaluate_subnet,
         )
+
+    def scan_routes(self):
+
+        return self.process_resources(
+            collect_routes(),
+            normalize_route,
+            evaluate_route,
+        )    
+
+    def scan_nat(self):
+
+        return self.process_resources(
+            collect_nat_gateways(),
+            normalize_nat,
+            evaluate_nat,
+        )    
+
+    def scan_load_balancers(self):
+
+        return self.process_resources(
+            collect_load_balancers(),
+            normalize_load_balancer,
+            evaluate_load_balancer,
+        )
+    def scan_cloud_armor(self):
+
+        return self.process_resources(
+            collect_cloud_armor_policies(),
+            normalize_cloud_armor,
+            evaluate_cloud_armor,
+        )        
 
     def scan_logging(self):
         return []
