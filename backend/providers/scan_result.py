@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Dict
+from backend.scoring.score_engine import ScoreEngine
 
 
 @dataclass
@@ -16,6 +17,7 @@ class ScanResult:
         "medium": 0,
         "low": 0,
     })
+    score: Dict = field(default_factory=dict)
 
     def calculate_summary(self):
 
@@ -32,3 +34,11 @@ class ScanResult:
 
             if severity in self.summary:
                 self.summary[severity] += 1
+
+    def calculate_score(self):
+
+        engine = ScoreEngine(
+            self.findings
+        )
+
+        self.score = engine.calculate()            

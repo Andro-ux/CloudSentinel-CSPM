@@ -10,6 +10,10 @@ def normalize_subnet(subnet):
 
         "name": subnet["name"],
 
+        "display_name": (
+            f"{subnet['name']} ({subnet['region']})"
+        ),
+
         "network": subnet["network"],
 
         "region": subnet["region"],

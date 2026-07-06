@@ -1,3 +1,36 @@
+from backend.collectors.gcp_dataproc_collector import collect_clusters
+from backend.normalizers.gcp_dataproc import normalize_cluster
+from backend.rules.gcp_dataproc_rules import evaluate_cluster
+from backend.collectors.gcp_dataflow_collector import collect_jobs
+from backend.normalizers.gcp_dataflow import normalize_job
+from backend.rules.gcp_dataflow_rules import evaluate_job
+from backend.collectors.gcp_bigquery_collector import collect_datasets
+from backend.normalizers.gcp_bigquery import normalize_dataset
+from backend.rules.gcp_bigquery_rules import evaluate_dataset
+from backend.collectors.gcp_vertex_collector import collect_endpoints
+from backend.normalizers.gcp_vertex import normalize_endpoint
+from backend.rules.gcp_vertex_rules import evaluate_endpoint
+from backend.collectors.gcp_pubsub_collector import collect_topics
+from backend.normalizers.gcp_pubsub import normalize_topic
+from backend.rules.gcp_pubsub_rules import evaluate_topic
+from backend.collectors.gcp_cloudfunctions_collector import collect_functions
+from backend.normalizers.gcp_cloudfunctions import normalize_function
+from backend.rules.gcp_cloudfunctions_rules import evaluate_function
+from backend.collectors.gcp_cloudrun_collector import collect_services
+from backend.normalizers.gcp_cloudrun import normalize_service
+from backend.rules.gcp_cloudrun_rules import evaluate_cloudrun
+from backend.collectors.gcp_artifact_registry_collector import collect_repositories
+from backend.normalizers.gcp_artifact_registry import normalize_repository
+from backend.rules.gcp_artifact_registry_rules import evaluate_repository
+from backend.collectors.gcp_gke_collector import collect_clusters
+from backend.normalizers.gcp_gke import normalize_cluster
+from backend.rules.gcp_gke_rules import evaluate_cluster
+from backend.collectors.gcp_secret_collector import collect_secrets
+from backend.normalizers.gcp_secret import normalize_secret
+from backend.rules.gcp_secret_rules import evaluate_secret
+from backend.collectors.gcp_cloudsql_collector import collect_sql_instances
+from backend.normalizers.gcp_cloudsql import normalize_sql_instance
+from backend.rules.gcp_cloudsql_rules import evaluate_sql_instance
 from backend.collectors.gcp_cloud_armor_collector import (
     collect_cloud_armor_policies,
 )
@@ -65,6 +98,17 @@ class GCPProvider:
         nat_findings = self.scan_nat()
         lb_findings = self.scan_load_balancers()
         armor_findings = self.scan_cloud_armor()
+        cloudsql_findings = self.scan_cloudsql()
+        secret_findings = self.scan_secrets()
+        gke_findings = self.scan_gke()
+        artifact_findings = self.scan_artifact_registry()
+        cloudrun_findings = self.scan_cloudrun()
+        cloudfunctions_findings = self.scan_cloudfunctions()
+        pubsub_findings = self.scan_pubsub()
+        vertex_findings = self.scan_vertex()
+        bigquery_findings = self.scan_bigquery()
+        dataflow_findings = self.scan_dataflow()
+        dataproc_findings = self.scan_dataproc()
 
         result.findings.extend(iam_findings)
         result.findings.extend(storage_findings)
@@ -77,7 +121,20 @@ class GCPProvider:
         result.findings.extend(nat_findings)
         result.findings.extend(lb_findings)
         result.findings.extend(armor_findings)
-
+        result.findings.extend(cloudsql_findings)
+        result.findings.extend(secret_findings)
+        result.findings.extend(gke_findings)
+        result.findings.extend(artifact_findings)
+        result.findings.extend(cloudrun_findings)
+        result.findings.extend(cloudfunctions_findings)
+        result.findings.extend(pubsub_findings)
+        result.findings.extend(vertex_findings)
+        result.findings.extend(bigquery_findings)
+        result.findings.extend(dataflow_findings)
+        result.findings.extend(
+            dataproc_findings
+        )
+        
         result.assets = {
         "iam": len(collect_service_accounts()),
         "storage": len(collect_buckets()),
@@ -89,9 +146,22 @@ class GCPProvider:
         "nat": len(collect_nat_gateways()),
         "load_balancer": len(collect_load_balancers()),
         "cloud_armor": len(collect_cloud_armor_policies()),
-        }
+        "cloudsql": len(collect_sql_instances()),
+        "secret_manager": len(collect_secrets()),
+        "gke": len(collect_clusters()),
+        "artifact_registry": len(collect_repositories()),
+        "cloudrun": len(collect_services()),
+        "cloud_functions":len(collect_functions()),
+        "vertex_ai":len(collect_endpoints()),
+        "bigquery": len(collect_datasets()),
+        "dataflow": len(collect_jobs()),
+        "dataproc": len(
+            collect_clusters()
+        ),
+        }   
 
         result.calculate_summary()
+        result.calculate_score()
 
         return result
 
@@ -180,6 +250,46 @@ class GCPProvider:
             assets.append(
                 normalize_cloud_armor(policy)
             )    
+        for instance in collect_sql_instances():
+            assets.append(
+                normalize_sql_instance(instance)
+            )    
+        for secret in collect_secrets():
+
+            assets.append(
+                normalize_secret(secret)
+            )    
+        for cluster in collect_clusters():
+            assets.append(
+                normalize_cluster(cluster)
+            )    
+
+        for repository in collect_repositories():
+            assets.append(
+                normalize_repository(repository)
+            )    
+        for service in collect_services():
+
+            assets.append(
+                normalize_service(service)
+            )    
+
+        for function in collect_functions():
+
+            assets.append(
+                normalize_function(function)
+            )    
+
+        for topic in collect_topics():
+
+            assets.append(
+            normalize_topic(topic)
+            )
+
+        for endpoint in collect_endpoints():
+            assets.append(
+                normalize_endpoint(endpoint)
+            )    
     
         return assets    
 
@@ -236,6 +346,94 @@ class GCPProvider:
             normalize_cloud_armor,
             evaluate_cloud_armor,
         )        
+
+    def scan_cloudsql(self):
+
+        return self.process_resources(
+            collect_sql_instances(),
+            normalize_sql_instance,
+            evaluate_sql_instance,
+        )   
+
+    def scan_secrets(self):
+
+        return self.process_resources(
+            collect_secrets(),
+            normalize_secret,
+            evaluate_secret,
+        )    
+
+    def scan_gke(self):
+
+        return self.process_resources(
+            collect_clusters(),
+            normalize_cluster,
+            evaluate_cluster,
+        )     
+
+    def scan_artifact_registry(self):
+
+        return self.process_resources(
+        collect_repositories(),
+        normalize_repository,
+        evaluate_repository,
+        )    
+
+    def scan_cloudrun(self):
+
+        return self.process_resources(
+        collect_services(),
+        normalize_service,
+        evaluate_cloudrun,
+        ) 
+
+    def scan_cloudfunctions(self):
+
+        return self.process_resources(
+        collect_functions(),
+        normalize_function,
+        evaluate_function,
+        ) 
+    def scan_pubsub(self):
+
+        return self.process_resources(
+        collect_topics(),
+        normalize_topic,
+        evaluate_topic,
+        )    
+
+    def scan_vertex(self):
+
+        return self.process_resources(
+            collect_endpoints(),
+            normalize_endpoint,
+            evaluate_endpoint,
+        )    
+
+    def scan_bigquery(self):
+
+        return self.process_resources(
+            collect_datasets(),
+            normalize_dataset,
+            evaluate_dataset,
+        )    
+    def scan_dataflow(self):
+
+        return self.process_resources(
+            collect_jobs(),
+            normalize_job,
+            evaluate_job,
+        )    
+    def scan_dataproc(self):
+
+        return self.process_resources(
+            collect_clusters(),
+            normalize_cluster,
+            evaluate_cluster,
+        )    
+
+
+
 
     def scan_logging(self):
         return []

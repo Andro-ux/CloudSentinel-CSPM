@@ -1,28 +1,134 @@
 def normalize_instance(instance):
+
+    zone = instance.get(
+        "zone", ""
+    ).split("/")[-1]
+
+    machine_type = instance.get(
+        "machineType", ""
+    ).split("/")[-1]
+
+    network_interfaces = instance.get(
+        "networkInterfaces", []
+    )
+
+    service_accounts = instance.get(
+        "serviceAccounts", []
+    )
+
+    disks = instance.get(
+        "disks", []
+    )
+
+    labels = instance.get(
+        "labels", {}
+    )
+
+    tags = instance.get(
+        "tags", {}
+    ).get(
+        "items", []
+    )
+
     return {
+
+        # ---------- Identity ----------
+
         "cloud": "gcp",
+
         "service": "Compute",
+
         "resource_type": "VM",
 
-        "resource_id": instance["id"],
+        "resource_id": instance.get("id"),
 
-        "name": instance["name"],
+        "name": instance.get("name"),
 
-        "zone": instance["zone"],
+        "display_name": instance.get("name"),
 
-        "machine_type": instance["machine_type"],
+        # ---------- Inventory ----------
 
-        "status": instance["status"],
+        "zone": zone,
 
-        "has_public_ip": any(
-            nic.get("accessConfigs")
-            for nic in instance["network_interfaces"]
-        ),
+        "machine_type": machine_type,
 
-        "service_accounts": [
-            sa["email"]
-            for sa in instance["service_accounts"]
-        ],
+        "status": instance.get("status"),
 
-        "raw": instance
+        # ---------- Relationships ----------
+
+        "relationships": {
+
+            "service_accounts": [
+
+                sa.get("email")
+
+                for sa in service_accounts
+
+            ],
+
+            "subnets": [
+
+                nic.get(
+                    "subnetwork", ""
+                ).split("/")[-1]
+
+                for nic in network_interfaces
+
+            ],
+
+            "networks": [
+
+                nic.get(
+                    "network", ""
+                ).split("/")[-1]
+
+                for nic in network_interfaces
+
+            ],
+
+            "disks": [
+
+                disk.get(
+                    "deviceName"
+                )
+
+                for disk in disks
+
+            ],
+
+        },
+
+        # ---------- Security ----------
+
+        "security": {
+
+            "public_ip": any(
+
+                nic.get("accessConfigs")
+
+                for nic in network_interfaces
+
+            ),
+
+            "shielded_vm": bool(
+
+                instance.get(
+                    "shieldedInstanceConfig"
+                )
+
+            ),
+
+        },
+
+        # ---------- Metadata ----------
+
+        "metadata": {
+
+            "labels": labels,
+
+            "tags": tags,
+
+        },
+
+        "raw": instance,
     }

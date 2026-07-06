@@ -22,7 +22,7 @@ def evaluate_subnet(subnet):
                 category="Monitoring",
                 title="VPC Flow Logs Disabled",
                 description=(
-                    f"Subnet '{subnet['name']}' does not have "
+                    f"Subnet '{subnet['display_name']}' does not have "
                     "VPC Flow Logs enabled."
                 ),
                 recommendation=(
@@ -55,7 +55,7 @@ def evaluate_subnet(subnet):
                 category="Network Configuration",
                 title="Private Google Access Disabled",
                 description=(
-                    f"Subnet '{subnet['name']}' does not have "
+                    f"Subnet '{subnet['display_name']}' does not have "
                     "Private Google Access enabled."
                 ),
                 recommendation=(
@@ -88,7 +88,7 @@ def evaluate_subnet(subnet):
                 category="Governance",
                 title="Subnet Missing Description",
                 description=(
-                    f"Subnet '{subnet['name']}' has no description."
+                    f"Subnet '{subnet['display_name']}' has no description."
                 ),
                 recommendation=(
                     "Add a meaningful description."
@@ -118,7 +118,7 @@ def evaluate_subnet(subnet):
                 category="Network Design",
                 title="Large Subnet CIDR",
                 description=(
-                    f"Subnet '{subnet['name']}' uses "
+                    f"Subnet '{subnet['display_name']}' uses "
                     f"{subnet['cidr']}."
                 ),
                 recommendation=(
