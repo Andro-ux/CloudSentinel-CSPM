@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
-from typing import List, Dict
-from backend.scoring.score_engine import ScoreEngine
+from typing import Any, Dict, List
+
+from backend.reporting.executive_summary import ExecutiveSummary
 
 
 @dataclass
 class ScanResult:
+
     provider: str
 
     findings: List[dict] = field(default_factory=list)
@@ -17,7 +19,18 @@ class ScanResult:
         "medium": 0,
         "low": 0,
     })
-    score: Dict = field(default_factory=dict)
+
+    executive_summary: Dict = field(default_factory=dict)
+
+    relationships: List = field(default_factory=list)
+
+    attack_paths: List = field(default_factory=list)
+
+    fact_set: Any = None
+
+    risk_set: Any = None
+
+    dashboard: Any = None
 
     def calculate_summary(self):
 
@@ -33,12 +46,11 @@ class ScanResult:
             severity = finding["severity"].lower()
 
             if severity in self.summary:
+
                 self.summary[severity] += 1
 
-    def calculate_score(self):
+    def calculate_executive_summary(self):
 
-        engine = ScoreEngine(
-            self.findings
+        self.executive_summary = ExecutiveSummary().generate(
+            self
         )
-
-        self.score = engine.calculate()            

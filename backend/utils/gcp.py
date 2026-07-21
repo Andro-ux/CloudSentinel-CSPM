@@ -1,34 +1,38 @@
 import os
 
-from google.oauth2 import service_account
-from google.cloud import storage
-from google.cloud import logging as cloud_logging
-from googleapiclient.discovery import build
-from google.cloud import secretmanager
-from google.cloud import container_v1
-from google.cloud import artifactregistry
-from google.cloud import run_v2
-from google.cloud import pubsub_v1
-from google.cloud import aiplatform_v1
-from google.cloud import bigquery
-from google.cloud import dataflow_v1beta3
-from google.cloud import dataproc_v1
-from google.api_core.client_options import ClientOptions
+try:
+    from google.oauth2 import service_account
+    from google.cloud import storage
+    from google.cloud import logging as cloud_logging
+    from googleapiclient.discovery import build
+    from google.cloud import secretmanager
+    from google.cloud import container_v1
+    from google.cloud import artifactregistry
+    from google.cloud import run_v2
+    from google.cloud import pubsub_v1
+    from google.cloud import aiplatform_v1
+    from google.cloud import bigquery
+    from google.cloud import dataflow_v1beta3
+    from google.cloud import dataproc_v1
+    from google.api_core.client_options import ClientOptions
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-SERVICE_ACCOUNT_FILE = os.path.join(
-    BASE_DIR,
-    "credentials",
-    "cloudsentinel.json"
-)
+    SERVICE_ACCOUNT_FILE = os.path.join(
+        BASE_DIR,
+        "credentials",
+        "cloudsentinel.json"
+    )
 
-SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+    SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE,
-    scopes=SCOPES
-)
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE,
+        scopes=SCOPES
+    )
+except Exception:
+    credentials = None
+
 
 
 def get_storage_client():
@@ -138,4 +142,4 @@ def get_dataproc_client(region):
 
 
 def get_project_id():
-    return credentials.project_id    
+    return credentials.project_id if credentials else "mock-project-id"    

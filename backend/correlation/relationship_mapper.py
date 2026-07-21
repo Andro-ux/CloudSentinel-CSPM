@@ -1,30 +1,35 @@
-from backend.correlation.models import Relationship
+from backend.correlation.builders.relationship_builder import RelationshipBuilder
 
 from backend.correlation.mappers.compute_mapper import ComputeMapper
+from backend.correlation.mappers.iam_mapper import IAMMapper
+from backend.correlation.mappers.network_mapper import NetworkMapper
+from backend.correlation.mappers.storage_mapper import StorageMapper
 
 
 class RelationshipMapper:
 
-    def __init__(self, asset_index):
+    def map(self, asset_index):
 
-        self.asset_index = asset_index
+        builder = RelationshipBuilder()
 
-        self.relationships = []
+        ComputeMapper().map(
+            asset_index,
+            builder
+        )
 
-        self.mappers = [
+        IAMMapper().map(
+            asset_index,
+            builder
+        )
 
-            ComputeMapper(),
+        NetworkMapper().map(
+            asset_index,
+            builder
+        )
 
-        ]
+        StorageMapper().map(
+            asset_index,
+            builder
+        )
 
-    def build(self):
-
-        for mapper in self.mappers:
-
-            self.relationships.extend(
-
-                mapper.map(self.asset_index)
-
-            )
-
-        return self.relationships
+        return builder.build()

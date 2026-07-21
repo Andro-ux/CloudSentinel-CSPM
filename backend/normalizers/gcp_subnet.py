@@ -1,30 +1,58 @@
 def normalize_subnet(subnet):
 
+    cidr = subnet.get("cidr") or subnet.get("ip_cidr_range") or ""
+
+    vpc = subnet.get("vpc") or subnet.get("network") or ""
+
+    region = subnet.get("region") or ""
+
+    if not region and vpc:
+        region = vpc.split("/")[-1] if "/" in vpc else ""
+
+    pga = subnet.get("private_google_access")
+
+    if pga is None:
+        pga = subnet.get("private_ip_google_access", False)
+
+    flow_logs = subnet.get("flow_logs")
+
+    if flow_logs is None:
+        flow_logs = subnet.get("enable_flow_logs", False)
+
     return {
 
-        "service": "Subnet",
+        "cloud": "gcp",
+
+        "service": "Network",
 
         "resource_type": "Subnet",
 
-        "resource_id": str(subnet["id"]),
+        "resource_id": subnet["id"],
 
         "name": subnet["name"],
 
-        "display_name": (
-            f"{subnet['name']} ({subnet['region']})"
-        ),
+        "display_name": subnet["name"],
 
-        "network": subnet["network"],
+        "cidr": cidr,
 
-        "region": subnet["region"],
+        "ip_cidr_range": cidr,
 
-        "cidr": subnet["ip_cidr_range"],
+        "vpc": vpc,
 
-        "private_google_access": subnet[
-            "private_ip_google_access"
-        ],
+        "region": region,
 
-        "flow_logs": subnet["enable_flow_logs"],
+        "private_google_access": pga,
 
-        "description": subnet["description"],
+        "flow_logs": flow_logs,
+
+        "description": subnet.get("description", ""),
+
+        "relationships": {
+
+            "vpcs": [vpc] if vpc else [],
+
+        },
+
+        "raw": subnet,
+
     }

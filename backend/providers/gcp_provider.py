@@ -1,3 +1,7 @@
+from backend.intelligence.enricher import FindingEnricher
+from backend.aggregation.finding_aggregator import FindingAggregator
+from backend.correlation.engine import CorrelationEngine
+from backend.models.scan_bundle import ScanBundle
 from backend.collectors.gcp_dataproc_collector import collect_clusters
 from backend.normalizers.gcp_dataproc import normalize_cluster
 from backend.rules.gcp_dataproc_rules import evaluate_cluster
@@ -86,54 +90,76 @@ class GCPProvider:
     def scan(self):
 
         result = ScanResult(provider="gcp")
+        iam_bundle = self.scan_iam()
+        storage_bundle = self.scan_storage()
+        compute_bundle = self.scan_compute()
+        logging_bundle = self.scan_logging()
+        firewall_bundle = self.scan_firewall()
+        vpc_bundle = self.scan_vpc()
+        subnet_bundle = self.scan_subnets()
+        route_bundle = self.scan_routes()
+        nat_bundle = self.scan_nat()
+        lb_bundle = self.scan_load_balancers()
+        armor_bundle = self.scan_cloud_armor()
+        cloudsql_bundle = self.scan_cloudsql()
+        secret_bundle = self.scan_secrets()
+        gke_bundle = self.scan_gke()
+        artifact_bundle = self.scan_artifact_registry()
+        cloudrun_bundle = self.scan_cloudrun()
+        cloudfunctions_bundle = self.scan_cloudfunctions()
+        pubsub_bundle = self.scan_pubsub()
+        vertex_bundle = self.scan_vertex()
+        bigquery_bundle = self.scan_bigquery()
+        dataflow_bundle = self.scan_dataflow()
+        dataproc_bundle = self.scan_dataproc()
 
-        iam_findings = self.scan_iam()
-        storage_findings = self.scan_storage()
-        compute_findings = self.scan_compute()
-        logging_findings = self.scan_logging()
-        firewall_findings = self.scan_firewall()
-        vpc_findings = self.scan_vpc()
-        subnet_findings = self.scan_subnets()
-        route_findings = self.scan_routes()
-        nat_findings = self.scan_nat()
-        lb_findings = self.scan_load_balancers()
-        armor_findings = self.scan_cloud_armor()
-        cloudsql_findings = self.scan_cloudsql()
-        secret_findings = self.scan_secrets()
-        gke_findings = self.scan_gke()
-        artifact_findings = self.scan_artifact_registry()
-        cloudrun_findings = self.scan_cloudrun()
-        cloudfunctions_findings = self.scan_cloudfunctions()
-        pubsub_findings = self.scan_pubsub()
-        vertex_findings = self.scan_vertex()
-        bigquery_findings = self.scan_bigquery()
-        dataflow_findings = self.scan_dataflow()
-        dataproc_findings = self.scan_dataproc()
 
-        result.findings.extend(iam_findings)
-        result.findings.extend(storage_findings)
-        result.findings.extend(compute_findings)
-        result.findings.extend(logging_findings)
-        result.findings.extend(firewall_findings)
-        result.findings.extend(vpc_findings)
-        result.findings.extend(subnet_findings)
-        result.findings.extend(route_findings)
-        result.findings.extend(nat_findings)
-        result.findings.extend(lb_findings)
-        result.findings.extend(armor_findings)
-        result.findings.extend(cloudsql_findings)
-        result.findings.extend(secret_findings)
-        result.findings.extend(gke_findings)
-        result.findings.extend(artifact_findings)
-        result.findings.extend(cloudrun_findings)
-        result.findings.extend(cloudfunctions_findings)
-        result.findings.extend(pubsub_findings)
-        result.findings.extend(vertex_findings)
-        result.findings.extend(bigquery_findings)
-        result.findings.extend(dataflow_findings)
-        result.findings.extend(
-            dataproc_findings
+        bundles = [
+
+            iam_bundle,
+            storage_bundle,
+            compute_bundle,
+            logging_bundle,
+            firewall_bundle,
+            vpc_bundle,
+            subnet_bundle,
+            route_bundle,
+            nat_bundle,
+            lb_bundle,
+            armor_bundle,
+            cloudsql_bundle,
+            secret_bundle,
+            gke_bundle,
+            artifact_bundle,
+            cloudrun_bundle,
+            cloudfunctions_bundle,
+            pubsub_bundle,
+            vertex_bundle,
+            bigquery_bundle,
+            dataflow_bundle,
+            dataproc_bundle,
+
+        ]
+
+        all_assets = []
+
+        for bundle in bundles:
+
+            result.findings.extend(
+                bundle.findings
+            )
+
+            all_assets.extend(
+                bundle.assets
+    )
+        
+        correlation = CorrelationEngine().correlate(
+            all_assets
         )
+
+        result.relationships = correlation.relationships
+
+        result.attack_paths = correlation.attack_paths
         
         result.assets = {
         "iam": len(collect_service_accounts()),
@@ -160,29 +186,42 @@ class GCPProvider:
         ),
         }   
 
+        aggregator = FindingAggregator()
+
+        result.findings = aggregator.aggregate(
+            result.findings
+        )
+
+        result.findings = FindingEnricher().enrich(
+            result.findings
+        )
+
         result.calculate_summary()
-        result.calculate_score()
+        
+        result.calculate_executive_summary()
 
         return result
 
     def process_resources(
-    self,
+        self,
         resources,
         normalizer,
         evaluator,
     ):
 
-        findings = []
+        bundle = ScanBundle()
 
         for resource in resources:
 
-            normalized = normalizer(resource)
+            asset = normalizer(resource)
 
-            findings.extend(
-                evaluator(normalized)
+            bundle.assets.append(asset)
+
+            bundle.findings.extend(
+                evaluator(asset)
             )
 
-        return findings
+        return bundle
 
     def scan_iam(self):
 
@@ -436,7 +475,7 @@ class GCPProvider:
 
 
     def scan_logging(self):
-        return []
+        return ScanBundle()
 
 
 

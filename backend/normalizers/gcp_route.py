@@ -1,5 +1,7 @@
 def normalize_route(route):
 
+    network = route["network"].split("/")[-1]
+
     return {
 
         "service": "Route",
@@ -10,7 +12,11 @@ def normalize_route(route):
 
         "name": route["name"],
 
-        "network": route["network"],
+        "relationships": {
+            "networks": [
+                network
+            ]
+        },
 
         "destination": route["dest_range"],
 

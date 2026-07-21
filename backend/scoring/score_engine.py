@@ -6,54 +6,40 @@ from backend.scoring.weights import (
 )
 
 
-class ScoreEngine:
+class StorageScore:
 
-    def __init__(self, findings):
+    def calculate(self, findings):
 
-        self.findings = findings
+        score = 100
 
-    def calculate(self):
+        for finding in findings:
 
-        deductions = defaultdict(int)
+            category = finding.get(
+                "category",
+                ""
+            ).lower()
 
-        total_deduction = 0
+            if category not in (
+                "storage",
+                "bucket",
+                "object storage",
+            ):
+                continue
 
-        for finding in self.findings:
+            severity = finding["severity"].upper()
 
-            severity = finding["severity"]
+            if severity == "CRITICAL":
+                score -= 30
 
-            weight = SEVERITY_WEIGHTS.get(
-                severity,
-                0,
-            )
+            elif severity == "HIGH":
+                score -= 20
 
-            deductions[
-                finding["service"]
-            ] += weight
+            elif severity == "MEDIUM":
+                score -= 10
 
-            total_deduction += weight
+            elif severity == "LOW":
+                score -= 5
 
-        overall = max(
-            MAX_SCORE - total_deduction,
-            0,
-        )
+        return max(score, 0)
 
-        services = {}
-
-        for service, deduction in deductions.items():
-
-            services[service] = max(
-                MAX_SCORE - deduction,
-                0,
-            )
-
-        return {
-
-            "overall": overall,
-
-            "services": services,
-
-            "deductions": dict(
-                deductions
-            ),
-        }
+        

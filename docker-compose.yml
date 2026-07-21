@@ -1,46 +1,115 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudsentinel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cloudsentinel
+      POSTGRES_USER: cloudsentinel
+      POSTGRES_PASSWORD: cloudsentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cloudsentinel
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudsentinel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
+    container_name: cloudsentinel-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cloudsentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: .
-      dockerfile: deployment/Dockerfile.backend
+      dockerfile: docker/backend/Dockerfile
+    container_name: cloudsentinel-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     environment:
+      - DATABASE_URL=postgresql://cloudsentinel:cloudsentinel@postgres:5432/cloudsentinel
       - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=text
     volumes:
-      - ./cloudsentinel.db:/app/cloudsentinel.db
+      - ./backend:/app/backend
+      - ./logs:/app/logs
+      - ./data:/app/data
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudsentinel
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  celery_worker:
+  worker:
     build:
       context: .
-      dockerfile: deployment/Dockerfile.backend
-    command: celery -A backend.celery_worker.celery_app worker --loglevel=info
-    env_file:
-      - .env
+      dockerfile: docker/worker/Dockerfile
+    container_name: cloudsentinel-worker
+    restart: unless-stopped
     environment:
+      - DATABASE_URL=postgresql://cloudsentinel:cloudsentinel@postgres:5432/cloudsentinel
       - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - ENVIRONMENT=development
+      - DEBUG=true
     volumes:
-      - ./cloudsentinel.db:/app/cloudsentinel.db
+      - ./backend:/app/backend
+      - ./logs:/app/logs
+      - ./data:/app/data
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudsentinel
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: ../deployment/Dockerfile.frontend
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: cloudsentinel-frontend
+    restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    networks:
+      - cloudsentinel
 
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  cloudsentinel:
+    driver: bridge

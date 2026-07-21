@@ -1,9 +1,21 @@
-from backend.providers.factory import get_provider
+from backend.services.scan_service import ScanService
 
-provider = get_provider("gcp")
+service = ScanService()
+result = service.run_scan()
 
-findings = provider.scan()
+print("=" * 50)
+print("SCAN COMPLETED")
+print("=" * 50)
+print("Provider:", result.provider)
+print("Assets count:", result.assets)
+print("Findings count:", len(result.findings))
+print("Relationships mapped:")
+for rel in result.relationships:
+    print(f"  {rel.source} --({rel.relation})--> {rel.target}")
 
-print()
-
-print(findings)
+print("Attack Paths discovered:")
+for path in result.attack_paths:
+    print(f"  Path: {' -> '.join(path.nodes)}")
+    print(f"    Title: {path.title}")
+    print(f"    Severity: {path.severity}")
+    print(f"    Risk Score: {path.risk_score}")

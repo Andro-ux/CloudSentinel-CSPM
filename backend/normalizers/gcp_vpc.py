@@ -1,17 +1,18 @@
-def normalize_vpc(network):
+def normalize_vpc(vpc):
 
     return {
-        "service": "VPC",
 
-        "resource_type": "Network",
+        "cloud": "gcp",
 
-        "resource_id": str(network["id"]),
+        "service": "Network",
 
-        "name": network["name"],
+        "resource_type": "VPC",
 
-        "description": network["description"],
+        "resource_id": vpc["id"],
 
-        "auto_mode": network["auto_create_subnetworks"],
+        "name": vpc["name"],
 
-        "routing_mode": network["routing_mode"],
+        "auto_create_subnets": vpc["autoCreateSubnetworks"],
+
+        "raw": vpc,
     }

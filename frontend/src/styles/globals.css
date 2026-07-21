@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --retro-bg: #0f0f1b;
+    --retro-surface: #1a1a2e;
+    --retro-surface-alt: #252542;
+    --retro-border: #3a3a5c;
+    --retro-text: #e0e0ff;
+    --retro-text-muted: #8888aa;
+    --retro-primary: #00ff9d;
+    --retro-primary-dim: #00cc7d;
+    --retro-secondary: #ff00ff;
+    --retro-accent: #00ffff;
+  }
+
+  * {
+    border-color: var(--retro-border);
+  }
+
+  body {
+    background-color: var(--retro-bg);
+    color: var(--retro-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    background-image:
+      linear-gradient(rgba(0, 255, 157, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .font-retro {
+    font-family: 'Press Start 2P', cursive;
+  }
+
+  .font-mono {
+    font-family: 'Fira Code', monospace;
+  }
+}
+
+@layer components {
+  .retro-card {
+    background-color: var(--retro-surface);
+    border: 1px solid var(--retro-border);
+    border-radius: 0.5rem;
+    box-shadow: 4px 4px 0px 0px rgba(0, 255, 157, 0.15);
+  }
+
+  .retro-card-hover {
+    background-color: var(--retro-surface);
+    border: 1px solid var(--retro-border);
+    border-radius: 0.5rem;
+    box-shadow: 4px 4px 0px 0px rgba(0, 255, 157, 0.15);
+    transition: all 0.2s;
+  }
+
+  .retro-card-hover:hover {
+    box-shadow: 4px 4px 0px 0px rgba(0, 255, 157, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .retro-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--retro-primary);
+    color: var(--retro-bg);
+    font-weight: 600;
+    border-radius: 0.25rem;
+    box-shadow: 2px 2px 0px 0px rgba(0, 255, 157, 0.3);
+    transition: all 0.1s ease;
+  }
+
+  .retro-btn:hover {
+    box-shadow: 3px 3px 0px 0px rgba(0, 255, 157, 0.5);
+    transform: translate(-1px, -1px);
+  }
+
+  .retro-btn:active {
+    box-shadow: 1px 1px 0px 0px rgba(0, 255, 157, 0.3);
+    transform: translate(1px, 1px);
+  }
+
+  .retro-btn-secondary {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 2px solid var(--retro-primary);
+    color: var(--retro-primary);
+    font-weight: 600;
+    border-radius: 0.25rem;
+    box-shadow: 2px 2px 0px 0px rgba(0, 255, 157, 0.2);
+  }
+
+  .retro-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--retro-surface-alt);
+    border: 1px solid var(--retro-border);
+    border-radius: 0.25rem;
+    color: var(--retro-text);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .retro-input:focus {
+    border-color: var(--retro-primary);
+    box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2);
+  }
+
+  .retro-input::placeholder {
+    color: var(--retro-text-muted);
+  }
+
+  .scanline {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(
+      transparent 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+}

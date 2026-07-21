@@ -124,7 +124,6 @@ class Finding(Base):
 
     
 
-
     risk_score = Column(Integer, default=0)
 
     compliance_status = Column(String, default="UNKNOWN")
@@ -181,6 +180,12 @@ class User(Base):
 
     hashed_password = Column(String, nullable=False)
 
+    failed_login_attempts = Column(Integer, default=0)
+
+    locked_until = Column(DateTime, nullable=True)
+
+    password_changed_at = Column(DateTime, default=datetime.utcnow)
+
 
 class Setting(Base):
     __tablename__ = "settings"
@@ -190,3 +195,79 @@ class Setting(Base):
     value = Column(String)
 
     is_encrypted = Column(Boolean, default=False)
+
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(String, primary_key=True, index=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    device = Column(String, nullable=True)
+
+    browser = Column(String, nullable=True)
+
+    ip_address = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    expires_at = Column(DateTime, nullable=True)
+
+    last_used = Column(DateTime, default=datetime.utcnow)
+
+    revoked = Column(Boolean, default=False)
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    jti = Column(String, primary_key=True, index=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    expires_at = Column(DateTime, nullable=True)
+
+    revoked = Column(Boolean, default=False)
+
+    device = Column(String, nullable=True)
+
+    ip_address = Column(String, nullable=True)
+
+    last_used = Column(DateTime, default=datetime.utcnow)
+
+
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+
+    id = Column(String, primary_key=True, index=True)
+
+    event_type = Column(String, nullable=False, index=True)
+
+    actor_type = Column(String, nullable=False)
+
+    actor_id = Column(String, nullable=False)
+
+    organization_id = Column(Integer, default=0)
+
+    resource_type = Column(String, nullable=False)
+
+    resource_id = Column(String, nullable=False)
+
+    action = Column(String, nullable=False)
+
+    status = Column(String, nullable=False)
+
+    ip_address = Column(String, nullable=True)
+
+    user_agent = Column(String, nullable=True)
+
+    request_id = Column(String, nullable=True)
+
+    severity = Column(String, default="info")
+
+    details = Column(JSON, default={})
+
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)

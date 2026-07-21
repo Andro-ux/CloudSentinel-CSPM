@@ -4,17 +4,15 @@ from abc import ABC, abstractmethod
 class CloudProvider(ABC):
 
     @abstractmethod
-    def collect_identity(self):
+    def scan(self):
+        """
+        Execute a complete provider scan.
+        """
         pass
 
     @abstractmethod
-    def collect_storage(self):
-        pass
-
-    @abstractmethod
-    def collect_compute(self):
-        pass
-
-    @abstractmethod
-    def collect_logging(self):
+    def get_assets(self):
+        """
+        Return all discovered assets.
+        """
         pass

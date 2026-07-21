@@ -1,5 +1,7 @@
+from collections import defaultdict
+
 from backend.correlation.asset_index import AssetIndex
-from backend.correlation.models import AssetNode
+from backend.correlation.models import AssetNode, Graph, Relationship
 
 
 class GraphBuilder:
@@ -7,6 +9,12 @@ class GraphBuilder:
     def __init__(self):
 
         self.index = AssetIndex()
+
+        self._edges = []
+
+        self._adjacency = defaultdict(list)
+
+        self._built = False
 
     def add_assets(self, assets):
 
@@ -20,10 +28,7 @@ class GraphBuilder:
 
                 resource_type=asset.get("resource_type"),
 
-                name=asset.get(
-                    "display_name",
-                    asset.get("name", "")
-                ),
+                name=asset.get("name"),
 
                 properties=asset,
 
@@ -31,6 +36,52 @@ class GraphBuilder:
 
             self.index.add(node)
 
-    def build(self):
+    def add_relationships(self, relationships):
 
-        return self.index
+        for rel in relationships:
+
+            self._edges.append(rel)
+
+            self._adjacency[rel.source].append(
+
+                (
+
+                    rel.target,
+
+                    rel.relation
+
+                )
+
+            )
+
+    def build(self, relationships=None):
+
+        if self._built:
+
+            raise RuntimeError(
+
+                "GraphBuilder has already been built"
+
+            )
+
+        self._built = True
+
+        if relationships:
+
+            self.add_relationships(relationships)
+
+        adjacency = {}
+
+        for k, v in self._adjacency.items():
+
+            adjacency[k] = list(v)
+
+        return Graph(
+
+            asset_index=self.index,
+
+            edges=list(self._edges),
+
+            adjacency=adjacency,
+
+        )
